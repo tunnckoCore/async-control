@@ -72,18 +72,33 @@ utils.factory = function factory (app, flow) {
 
     utils.normalize(this || app, value, options)
 
-    if (typeof done !== 'function') {
-      return function doneCallback (cb) {
-        utils.async[flow](value, app.iterator, function callback () {
-          app.options.after.apply(app, arguments)
-          cb.apply(app, arguments)
-        })
-      }
+    if (typeof done === 'function') {
+      utils.async[flow](value, app.iterator, utils.doneCallback(app, done))
+      return
     }
-    utils.async[flow](value, app.iterator, function callback () {
-      app.options.after.apply(app, arguments)
-      done.apply(app, arguments)
-    })
+
+    return function thunk (cb) {
+      if (typeof cb !== 'function') {
+        var msg = format('AsyncControl.%s `done` to be function.', flow)
+        throw new TypeError(msg)
+      }
+      utils.async[flow](value, app.iterator, utils.doneCallback(app, cb))
+    }
+  }
+}
+
+/**
+ * > Final (done) callback.
+ *
+ * @param  {Object}   `app`
+ * @param  {Function} `done`
+ * @return {Function} callback
+ * @api private
+ */
+utils.doneCallback = function doneCallback (app, done) {
+  return function callback () {
+    app.options.after.apply(app, arguments)
+    done.apply(app, arguments)
   }
 }
 
