@@ -1,0 +1,38 @@
+{
+  "name": "async-control",
+  "version": "0.0.0",
+  "description": "Ultimate asynchronous control flow goodness with built-in hook system and compose, series, define and parallel methods. Uses async.map and async.mapSeries methods. Allows passing custom iterator function.",
+  "repository": "hybridables/async-control",
+  "author": "Charlike Mike Reagent <@tunnckoCore> (http://www.tunnckocore.tk)",
+  "precommit.silent": true,
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "test": "standard && node test.js"
+  },
+  "dependencies": {
+    "async": "^1.5.2",
+    "define-property": "^0.2.5",
+    "extend-shallow": "^2.0.1",
+    "isarray": "^1.0.0",
+    "lazy-cache": "^1.0.3"
+  },
+  "devDependencies": {
+    "assertit": "^0.1.0",
+    "pre-commit": "*"
+  },
+  "files": [
+    "index.js",
+    "utils.js"
+  ],
+  "keywords": [
+    "async-control"
+  ],
+  "verb": {
+    "toc": false,
+    "layout": "empty",
+    "tasks": [
+      "readme"
+    ]
+  }
+}
