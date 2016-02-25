@@ -18,17 +18,24 @@ const asyncControl = require('async-control')
 
 asyncControl.series([
   function one (next) {
+    console.log('first')
     fs.readFile('package.json', 'utf8', next)
   },
   function two (next) {
-    console.log('second')
-    fs.stat('not exist', next)
+    setTimeout(function () {
+      console.log('second')
+      fs.stat('not exist', next)
+    }, 100)
   },
   function three (next) {
     console.log('third')
     next(null, 123)
   }
 ], {settle: false}, function done (err, res) {
+  // => first
+  // => second
+  // => third
+
   console.log('err:', err)
   // => if `options.settle` is true - `undefined`, otherwise thrown Error
   console.log('res:', res) // => array of results
@@ -40,7 +47,7 @@ asyncControl.series([
 })
 ```
 
-### [AsyncControl](index.js#L50)
+### [AsyncControl](index.js#L46)
 > Initialize `AsyncControl` with `options`.
 
 **Params**
@@ -71,7 +78,7 @@ util.inherits(MyApp, AsyncControl)
 const app = new MyApp({settle: true})
 ```
 
-### [.compose](index.js#L108)
+### [.compose](index.js#L104)
 > Compose `series` or `parallel` method. Can be used to create `settleSeries` or `settleParallel` methods for example.
 
 **Params**
@@ -101,7 +108,7 @@ series([
 ], {settle: true}, console.log) //=> null, [123, ENOENT Error, 456]
 ```
 
-### [.series](index.js#L154)
+### [.series](index.js#L150)
 > Iterate over `value` in serial flow. The `async.mapSeries` method is used.
 
 **Params**
@@ -130,7 +137,7 @@ asyncControl.series([
 ], console.log) //=> ENOENT Error, ['foo', undefined]
 ```
 
-### [.parallel](index.js#L201)
+### [.parallel](index.js#L197)
 > Iterate over `value` in parallel flow. The `async.map` method is used.
 
 **Params**
@@ -175,7 +182,7 @@ asyncControl.parallel([
 })
 ```
 
-### [.define](index.js#L227)
+### [.define](index.js#L223)
 > Define a non-enumerable property on the instance. Can be used to pass custom iterator function or define other methods.
 
 **Params**
