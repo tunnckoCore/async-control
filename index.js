@@ -9,58 +9,48 @@
 
 var util = require('util')
 var utils = require('./utils')
+var AppBase = require('app-base').AppBase
 var noop = function noop () {}
 
 /**
- * > Initialize `AsyncControl` with `options`.
- *
- * **Example**
- *
- * ```js
- * const util = require('util')
- * const AsyncControl = require('async-control').AsyncControl
- *
- * function MyApp (options) {
- *   if (!(this instanceof MyApp)) {
- *     return new MyApp(options)
- *   }
- *   AsyncControl.call(this, options)
- * }
- *
- * util.inherits(MyApp, AsyncControl)
- *
- * const app = new MyApp({settle: true})
- * ```
+ * > Initialize `AsyncControl` with `options` to
+ * control enabling/disabling `options.settle`, passing
+ * custom `iterator` and pass different hooks - before, after, etc.
  *
  * @name  AsyncControl
- * @param {Object} `options` optional options for more control
- * @property {Boolean} [options] `settle` pass `true` to force continue iterating after first error occurred.
- * @property {Function} [options] `iterator` custom iterator function
- * @property {Function} [options] `before` before all hook.
- * @property {Function} [options] `beforeEach` hook, called before each item/function.
- * @property {Function} [options] `after` after all hook.
- * @property {Function} [options] `afterEach` hook, called after each item/function.
- * @api public
+ * @param {Object=} options
+ * @public
  */
 function AsyncControl (options) {
   if (!(this instanceof AsyncControl)) {
     return new AsyncControl(options)
   }
-
-  options = utils.isObject(options) ? options : {}
-  this._initAsyncControl(options)
+  AppBase.call(this)
+  this.defaults(options)
 }
 
 /**
- * > Used to create default methods. Adds three methods
- * to the instance: compose, series and parallel.
+ * > Extends `AsyncControl` with `AppBase` static
+ * and prototype methods.
  *
- * @name   ._initAsyncControl
- * @param  {Object} `[options]`
- * @return {AsyncControl} instance for chaining.
- * @api private
+ * - added prototype methods: define, delegate, isObject.
+ * - added static methods: define, delegate, inherit, extend.
+ *
+ * @private
  */
-utils.define(AsyncControl.prototype, '_initAsyncControl', function _initAsyncControl (options) {
+AppBase.extend(AsyncControl)
+
+/**
+ * > Used to normalize default options and
+ * to compose and define three more non-enumerable
+ * methods to the instance - compose, series and parallel.
+ *
+ * @name   defaults
+ * @param  {Object=} options
+ * @return {AsyncControl}
+ * @private
+ */
+AppBase.define(AsyncControl.prototype, 'defaults', function defaults (options) {
   this.options = utils.extend({
     settle: false,
     before: noop,
@@ -70,61 +60,14 @@ utils.define(AsyncControl.prototype, '_initAsyncControl', function _initAsyncCon
   }, this.options, options)
 
   /**
-   * > Compose `series` or `parallel` method. Can be used to
-   * create `settleSeries` or `settleParallel` methods for example.
+   * > Iterate over `value` in series flow.
+   * The `async.mapSeries` method is used.
    *
-   * **Example**
-   *
-   * ```js
-   * const fs = require('fs')
-   * const asyncControl = require('async-control')
-   *
-   * // the internal `.series` method is created this way - using `.compose`
-   * var series = asyncControl.compose('series')
-   * series([
-   *   function one (cb) {
-   *     cb(null, 123)
-   *   },
-   *   function two (cb) {
-   *     fs.readFile('not exist', cb)
-   *   },
-   *   function three (cb) {
-   *     cb(null, 456)
-   *   }
-   * ], {settle: true}, console.log) //=> null, [123, ENOENT Error, 456]
-   * ```
-   *
-   * @name   .compose
-   * @param  {String} `<flow>` type of flow, available are `'parallel'`, `'series'`, `'map'` and `'mapSeries'`.
-   * @param  {Object} `[options]` can pass different hooks - before, after, beforeEach, afterEach.
-   * @return {Function} composed `series` or `parallel` method.
-   * @api public
-   */
-  this.define('compose', function compose (flow, options) {
-    if (typeof flow !== 'string') {
-      throw new TypeError('asyncControl.compose expect a string')
-    }
-
-    flow = flow === 'series' ? 'mapSeries' : flow
-    flow = flow === 'parallel' ? 'map' : flow
-
-    if (['mapSeries', 'map'].indexOf(flow) === -1) {
-      var msg = util.format('AsyncControl.compose `flow` to be string - parallel or series')
-      throw new TypeError(msg)
-    }
-
-    this.options = options ? utils.extend(this.options, options) : this.options
-    return utils.factory(this, flow)
-  })
-
-  /**
-   * > Iterate over `value` in serial flow. The `async.mapSeries` method is used.
-   *
-   * **Example**
+   * @example
    *
    * ```js
-   * const fs = require('fs')
-   * const asyncControl = require('async-control')
+   * var fs = require('fs')
+   * var asyncControl = require('async-control')
    *
    * asyncControl.series([
    *   function one (cb) {
@@ -139,23 +82,25 @@ utils.define(AsyncControl.prototype, '_initAsyncControl', function _initAsyncCon
    * ], console.log) //=> ENOENT Error, ['foo', undefined]
    * ```
    *
+   * @see    .compose
    * @name   .series
-   * @param  {Object|Array|Function} `<value>` to iterate over.
-   * @param  {Object} `[options]` can pass different hooks - before, after, beforeEach, afterEach.
-   * @param  {Function} `[done]` if not passed, thunk is returned (function that accepts callback).
-   * @return {Function} or `undefined` if `done` is passed.
-   * @api public
+   * @param  {Object|Array|Function} value The value to iterate over.
+   * @param  {Object=} options Can pass different hooks - before, after, beforeEach, afterEach.
+   * @param  {Function=} done If not passed, thunk is returned (function that accepts callback).
+   * @return {Function} Or `undefined` if `done` is passed.
+   * @public
    */
   this.define('series', this.compose('series'))
 
   /**
-   * > Iterate over `value` in parallel flow. The `async.map` method is used.
+   * > Iterate over `value` in parallel flow.
+   * The `async.map` method is used.
    *
-   * **Example**
+   * @example
    *
    * ```js
-   * const fs = require('fs')
-   * const asyncControl = require('async-control')
+   * var fs = require('fs')
+   * var asyncControl = require('async-control')
    *
    * asyncControl.parallel([
    *   function one (next) {
@@ -186,12 +131,13 @@ utils.define(AsyncControl.prototype, '_initAsyncControl', function _initAsyncCon
    * })
    * ```
    *
+   * @see    .compose
    * @name   .parallel
-   * @param  {Object|Array|Function} `<value>` to iterate over.
-   * @param  {Object} `[options]` can pass different hooks - before, after, beforeEach, afterEach.
-   * @param  {Function} `[done]` if not passed, thunk is returned (function that accepts callback).
-   * @return {Function} or `undefined` if `done` is passed.
-   * @api public
+   * @param  {Object|Array|Function} value The value to iterate over.
+   * @param  {Object=} options Can pass different hooks - before, after, beforeEach, afterEach.
+   * @param  {Function=} done If not passed, thunk is returned (function that accepts callback).
+   * @return {Function} Or `undefined` if `done` is passed.
+   * @public
    */
   this.define('parallel', this.compose('parallel'))
 
@@ -199,34 +145,66 @@ utils.define(AsyncControl.prototype, '_initAsyncControl', function _initAsyncCon
 })
 
 /**
- * > Define a non-enumerable property on the instance.
- * Can be used to pass custom iterator function or define other methods.
+ * > Compose `series` or `parallel` method. Can be used to
+ * create `settleSeries` or `settleParallel` methods for example.
  *
- * **Example**
+ * @example
  *
  * ```js
- * const asyncControl = require('async-control')
+ * var fs = require('fs')
+ * var asyncControl = require('async-control')
  *
- * asyncControl.define('hello', function (key, val) {
- *   console.log('Hello', key, val)
- * })
- * asyncControl.hello('foo', 'world!') // => 'Hello foo world!'
+ * // the internal `.series` method is created this way - using `.compose`
+ * var series = asyncControl.compose('series')
+ * series([
+ *   function one (cb) {
+ *     cb(null, 123)
+ *   },
+ *   function two (cb) {
+ *     fs.readFile('not exist', cb)
+ *   },
+ *   function three (cb) {
+ *     cb(null, 456)
+ *   }
+ * ], {settle: true}, console.log) //=> null, [123, ENOENT Error, 456]
  * ```
  *
- * @name  .define
- * @param {String} `key` the name of the property to define.
- * @param {Mixed} `val` the descriptor for the property being defined or modified.
- * @return {AsyncControl} instance for chaining.
- * @api public
+ * @see    utils.factory
+ * @name   .compose
+ * @param  {String} flow Type of flow, one of `'series'` or `'parallel'`.
+ * @param  {Object=} options Can pass different hooks - before, after, beforeEach, afterEach.
+ * @return {Function} Composed `series` or `parallel` method, depends on `flow`.
+ * @public
  */
-utils.define(AsyncControl.prototype, 'define', function defineProperty (key, val) {
-  utils.define(this, key, val)
-  return this
+AppBase.define(AsyncControl.prototype, 'compose', function compose (flow, options) {
+  if (typeof flow !== 'string') {
+    throw new TypeError('asyncControl.compose expect a string')
+  }
+
+  flow = flow === 'series' ? 'mapSeries' : flow
+  flow = flow === 'parallel' ? 'map' : flow
+
+  if (['mapSeries', 'map'].indexOf(flow) === -1) {
+    var msg = util.format('AsyncControl.compose `flow` to be string - parallel or series')
+    throw new TypeError(msg)
+  }
+
+  this.options = options ? utils.extend(this.options, options) : this.options
+  return utils.factory(this, flow)
 })
 
 /**
- * Expose `AsyncControl` constructor and instance.
+ * > Expose `AsyncControl` instance.
+ *
+ * @type {AsyncControl}
+ * @private
  */
-
 module.exports = new AsyncControl()
+
+/**
+ * > Expose `AsyncControl` constructor.
+ *
+ * @type {Function}
+ * @private
+ */
 module.exports.AsyncControl = AsyncControl

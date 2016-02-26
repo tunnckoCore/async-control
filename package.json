@@ -23,7 +23,6 @@
   },
   "files": [
     "index.js",
-    "refactor.js",
     "utils.js"
   ],
   "keywords": [

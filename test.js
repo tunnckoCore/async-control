@@ -10,9 +10,8 @@
 'use strict'
 
 var fs = require('fs')
-var asyncControl = require('./refactor')
+var asyncControl = require('./index')
 
-// asyncControl.define('iterator', require('./letta-iterator'))
 asyncControl.series([
   function one (done) {
     this.one = 'one'
@@ -32,7 +31,7 @@ asyncControl.series([
     // console.log(this.three)
     fs.readFile('package.json', done)
   }
-], function (err, res) {
+], /* {settle: true}, */ function (err, res) {
   console.log('err:', err) // => ENOENT Error
   console.log('res:', res) // => [Buffer, undefined]
   console.log('done')

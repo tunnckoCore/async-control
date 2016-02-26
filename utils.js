@@ -25,7 +25,6 @@ require = utils // eslint-disable-line no-undef, no-native-reassign
  * Lazily required module dependencies
  */
 
-require('app-base')
 require('async')
 require('extend-shallow', 'extend')
 
@@ -39,22 +38,21 @@ require = fn // eslint-disable-line no-undef, no-native-reassign
  * > Factory used to create, validate and normalize `series` and `parallel` methods.
  *
  * @name   factory
- * @param  {AsyncControl} `app` instance.
- * @param  {String} `flow` type of the flow - parallel or series.
- * @return {Function} `series` or `parallel` method, depends on what is `flow` value.
- * @api private
+ * @param  {AsyncControl} `app`
+ * @param  {String} `flow`
+ * @return {Function}
+ * @private
  */
 utils.factory = function factory (app, flow) {
   /**
-   * > Iterate over `value` in parallel or serial flow.
+   * > Iterate over `value` in parallel or series flow.
    * The `async.map` or `async.mapSeries` method is used.
    *
-   * @name   .series / .parallel
-   * @param  {Object|Array|Function} `<value>` to iterate over.
-   * @param  {Object} `[options]` can pass different hooks - before, after, beforeEach, afterEach.
-   * @param  {Function} `[done]` if not passed, thunk is returned (function that accepts callback).
-   * @return {Function} or `undefined` if `done` is passed.
-   * @api private
+   * @param  {Object|Array|Function} `value`
+   * @param  {Object=} `options`
+   * @param  {Function=} `done`
+   * @return {Function}
+   * @private
    */
   return function seriesOrParallel (value, options, done) {
     if (typeof value === 'function') {
@@ -87,12 +85,12 @@ utils.factory = function factory (app, flow) {
 }
 
 /**
- * > Final (done) callback.
+ * > Final (done) callback. Also calls the `after` hook.
  *
- * @param  {Object}   `app`
- * @param  {Function} `done`
+ * @param  {Object}   app
+ * @param  {Function} done
  * @return {Function} callback
- * @api private
+ * @private
  */
 utils.doneCallback = function doneCallback (app, done) {
   return function callback () {
@@ -105,12 +103,11 @@ utils.doneCallback = function doneCallback (app, done) {
  * > Set and normalize defaults, input value, iterator and opitons.
  * Also calls the `before` hook.
  *
- * @name   normalize
  * @param  {Object} `app`
- * @param  {Object|Array|Function} `value` iterate over it
+ * @param  {Object|Array|Function} `value`
  * @param  {Object} `opts`
  * @return {Object}
- * @api private
+ * @private
  */
 utils.normalize = function normalize (app, value, opts) {
   app.define('_input', value)
@@ -118,8 +115,9 @@ utils.normalize = function normalize (app, value, opts) {
 
   var iterator = app.options.iterator || app.iterator
   iterator = typeof iterator !== 'function' ? utils.createIterator : iterator
+  iterator = iterator.call(app, app, app.options)
 
-  app.define('iterator', iterator.call(app, app, app.options))
+  app.define('iterator', iterator.bind(app))
   app.options.before.call(app, value)
   return app
 }
@@ -130,7 +128,7 @@ utils.normalize = function normalize (app, value, opts) {
  * your own iterator using `asyncControl.define` method.
  * This also can be done with passing function to `options.iterator`.
  *
- * **Example**
+ * @example
  *
  * ```js
  * const util = require('util')
@@ -158,17 +156,17 @@ utils.normalize = function normalize (app, value, opts) {
  * })
  * ```
  *
- * @name   createIterator
- * @param  {Object} `app` instance of AsyncControl
- * @param  {Object} `opts` the `app` options
- * @return {Function} iterator function passed directly to [async][async]
- * @api private
+ * @param  {Object} app The instance of AsyncControl.
+ * @param  {Object} opts The app options, same as `app.options`.
+ * @return {Function} Iterator function passed directly to [async][async].
+ * @private
  */
 utils.createIterator = function createIterator (app, opts) {
   var settle = typeof app.settle === 'boolean' ? app.settle : false
   settle = typeof opts.settle === 'boolean' ? !!opts.settle : !!settle
 
   return function defaultIterator (fn, next) {
+    app = this || app
     var res = null
     opts.beforeEach.apply(app, arguments)
 
@@ -187,12 +185,14 @@ utils.createIterator = function createIterator (app, opts) {
       res = err
     }
 
-    return res instanceof Error ? done(res) : (res ? done(null, res) : null)
+    return res instanceof Error ? done(res) : (res ? done(null, res) : res)
   }
 }
 
 /**
- * Expose `utils` modules
+ * > Expose `utils` modules.
+ *
+ * @type {Object}
+ * @private
  */
-
 module.exports = utils
