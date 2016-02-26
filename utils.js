@@ -25,10 +25,9 @@ require = utils // eslint-disable-line no-undef, no-native-reassign
  * Lazily required module dependencies
  */
 
+require('app-base')
 require('async')
-require('define-property', 'define')
 require('extend-shallow', 'extend')
-require('isarray', 'isArray')
 
 /**
  * Restore `require`
@@ -190,18 +189,6 @@ utils.createIterator = function createIterator (app, opts) {
 
     return res instanceof Error ? done(res) : (res ? done(null, res) : null)
   }
-}
-
-/**
- * > Is `val` is object, but not array?
- *
- * @name   isObject
- * @param  {Mixed} `val`
- * @return {Boolean}
- * @api private
- */
-utils.isObject = function isObject (val) {
-  return typeof val === 'object' && !utils.isArray(val)
 }
 
 /**
