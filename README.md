@@ -47,8 +47,11 @@ asyncControl.series([
 })
 ```
 
-### [AsyncControl](index.js#L46)
-> Initialize `AsyncControl` with `options`.
+### [AsyncControl](index.js#L25)
+
+> Initialize `AsyncControl` with `options` to
+control enabling/disabling `options.settle`, passing
+custom `iterator` and pass different hooks - before, after, etc.
 
 **Params**
 
@@ -78,51 +81,21 @@ util.inherits(MyApp, AsyncControl)
 const app = new MyApp({settle: true})
 ```
 
-### [.compose](index.js#L104)
-> Compose `series` or `parallel` method. Can be used to create `settleSeries` or `settleParallel` methods for example.
+### [.series](index.js#L92)
+> Iterate over `value` in series flow. The `async.mapSeries` method is used.
 
 **Params**
 
-* `<flow>` **{String}**: type of flow, available are `'parallel'`, `'series'`, `'map'` and `'mapSeries'`.    
-* `[options]` **{Object}**: can pass different hooks - before, after, beforeEach, afterEach.    
-* `returns` **{Function}**: composed `series` or `parallel` method.  
+* `value` **{Object|Array|Function}**: The value to iterate over.    
+* `options` **{Object=}**: Can pass different hooks - before, after, beforeEach, afterEach.    
+* `done` **{Function=}**: If not passed, thunk is returned (function that accepts callback).    
+* `returns` **{Function}**: Or `undefined` if `done` is passed.  
 
 **Example**
 
 ```js
-const fs = require('fs')
-const asyncControl = require('async-control')
-
-// the internal `.series` method is created this way - using `.compose`
-var series = asyncControl.compose('series')
-series([
-  function one (cb) {
-    cb(null, 123)
-  },
-  function two (cb) {
-    fs.readFile('not exist', cb)
-  },
-  function three (cb) {
-    cb(null, 456)
-  }
-], {settle: true}, console.log) //=> null, [123, ENOENT Error, 456]
-```
-
-### [.series](index.js#L150)
-> Iterate over `value` in serial flow. The `async.mapSeries` method is used.
-
-**Params**
-
-* `<value>` **{Object|Array|Function}**: to iterate over.    
-* `[options]` **{Object}**: can pass different hooks - before, after, beforeEach, afterEach.    
-* `[done]` **{Function}**: if not passed, thunk is returned (function that accepts callback).    
-* `returns` **{Function}**: or `undefined` if `done` is passed.  
-
-**Example**
-
-```js
-const fs = require('fs')
-const asyncControl = require('async-control')
+var fs = require('fs')
+var asyncControl = require('async-control')
 
 asyncControl.series([
   function one (cb) {
@@ -137,21 +110,21 @@ asyncControl.series([
 ], console.log) //=> ENOENT Error, ['foo', undefined]
 ```
 
-### [.parallel](index.js#L197)
+### [.parallel](index.js#L141)
 > Iterate over `value` in parallel flow. The `async.map` method is used.
 
 **Params**
 
-* `<value>` **{Object|Array|Function}**: to iterate over.    
-* `[options]` **{Object}**: can pass different hooks - before, after, beforeEach, afterEach.    
-* `[done]` **{Function}**: if not passed, thunk is returned (function that accepts callback).    
-* `returns` **{Function}**: or `undefined` if `done` is passed.  
+* `value` **{Object|Array|Function}**: The value to iterate over.    
+* `options` **{Object=}**: Can pass different hooks - before, after, beforeEach, afterEach.    
+* `done` **{Function=}**: If not passed, thunk is returned (function that accepts callback).    
+* `returns` **{Function}**: Or `undefined` if `done` is passed.  
 
 **Example**
 
 ```js
-const fs = require('fs')
-const asyncControl = require('async-control')
+var fs = require('fs')
+var asyncControl = require('async-control')
 
 asyncControl.parallel([
   function one (next) {
@@ -182,24 +155,34 @@ asyncControl.parallel([
 })
 ```
 
-### [.define](index.js#L223)
-> Define a non-enumerable property on the instance. Can be used to pass custom iterator function or define other methods.
+### [.compose](index.js#L178)
+> Compose `series` or `parallel` method. Can be used to create `settleSeries` or `settleParallel` methods for example.
 
 **Params**
 
-* `key` **{String}**: the name of the property to define.    
-* `val` **{Mixed}**: the descriptor for the property being defined or modified.    
-* `returns` **{AsyncControl}**: instance for chaining.  
+* `flow` **{String}**: Type of flow, one of `'series'` or `'parallel'`.    
+* `options` **{Object=}**: Can pass different hooks - before, after, beforeEach, afterEach.    
+* `returns` **{Function}**: Composed `series` or `parallel` method, depends on `flow`.  
 
 **Example**
 
 ```js
-const asyncControl = require('async-control')
+var fs = require('fs')
+var asyncControl = require('async-control')
 
-asyncControl.define('hello', function (key, val) {
-  console.log('Hello', key, val)
-})
-asyncControl.hello('foo', 'world!') // => 'Hello foo world!'
+// the internal `.series` method is created this way - using `.compose`
+var series = asyncControl.compose('series')
+series([
+  function one (cb) {
+    cb(null, 123)
+  },
+  function two (cb) {
+    fs.readFile('not exist', cb)
+  },
+  function three (cb) {
+    cb(null, 456)
+  }
+], {settle: true}, console.log) //=> null, [123, ENOENT Error, 456]
 ```
 
 ### Custom iterator
@@ -218,9 +201,13 @@ const util = require('util')
 const asyncControl = require('async-control')
 
 asyncControl.define('iterator', function customIterator (app, options) {
-  // this === app
+  // `this` can be passed `options.context` or `app`
+  // `this` not always equal to `app`
+  var self = this
   return iterator (fn, next) {
-    // this === app
+    // `this` not always equal to `app`
+    // `this` is always equal to `self`
+    console.log(this, self, app)
     console.log(util.inspect(fn))
     next()
   }
@@ -247,11 +234,10 @@ But before doing anything, please read the [CONTRIBUTING.md](./CONTRIBUTING.md) 
 
 [![tunnckoCore.tk][author-www-img]][author-www-url] [![keybase tunnckoCore][keybase-img]][keybase-url] [![tunnckoCore npm][author-npm-img]][author-npm-url] [![tunnckoCore twitter][author-twitter-img]][author-twitter-url] [![tunnckoCore github][author-github-img]][author-github-url]
 
+[app-base]: https://github.com/tunnckocore/app-base
 [async]: https://github.com/caolan/async
-[define-property]: https://github.com/jonschlinkert/jonschlinkert/define-property
-[extend-shallow]: https://github.com/jonschlinkert/jonschlinkert/extend-shallow
-[isarray]: https://github.com/juliangruber/isarray
-[lazy-cache]: https://github.com/jonschlinkert/jonschlinkert/lazy-cache
+[extend-shallow]: https://github.com/jonschlinkert/extend-shallow
+[lazy-cache]: https://github.com/jonschlinkert/lazy-cache
 
 [npmjs-url]: https://www.npmjs.com/package/async-control
 [npmjs-img]: https://img.shields.io/npm/v/async-control.svg?label=async-control
@@ -294,3 +280,4 @@ But before doing anything, please read the [CONTRIBUTING.md](./CONTRIBUTING.md) 
 
 [new-message-url]: https://github.com/tunnckoCore/ama
 [new-message-img]: https://img.shields.io/badge/ask%20me-anything-green.svg
+

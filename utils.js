@@ -137,9 +137,13 @@ utils.normalize = function normalize (app, value, opts) {
  * const asyncControl = require('async-control')
  *
  * asyncControl.define('iterator', function customIterator (app, options) {
- *   // this === app
+ *   // `this` can be passed `options.context` or `app`
+ *   // `this` not always equal to `app`
+ *   var self = this
  *   return iterator (fn, next) {
- *     // this === app
+ *     // `this` not always equal to `app`
+ *     // `this` is always equal to `self`
+ *     console.log(this, self, app)
  *     console.log(util.inspect(fn))
  *     next()
  *   }
