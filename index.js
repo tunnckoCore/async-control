@@ -26,7 +26,14 @@ function AsyncControl (options) {
     return new AsyncControl(options)
   }
   AppBase.call(this)
-  this.defaults(options)
+  this.options = utils.extend({
+    settle: false,
+    before: noop,
+    beforeEach: noop,
+    after: noop,
+    afterEach: noop
+  }, this.options, options)
+  this.initAsyncControl()
 }
 
 /**
@@ -45,20 +52,11 @@ AppBase.extend(AsyncControl)
  * to compose and define three more non-enumerable
  * methods to the instance - compose, series and parallel.
  *
- * @name   defaults
- * @param  {Object=} options
+ * @name   initAsyncControl
  * @return {AsyncControl}
  * @private
  */
-AppBase.define(AsyncControl.prototype, 'defaults', function defaults (options) {
-  this.options = utils.extend({
-    settle: false,
-    before: noop,
-    beforeEach: noop,
-    after: noop,
-    afterEach: noop
-  }, this.options, options)
-
+AppBase.define(AsyncControl.prototype, 'initAsyncControl', function initAsyncControl () {
   /**
    * > Iterate over `value` in series flow.
    * The `async.mapSeries` method is used.
