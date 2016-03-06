@@ -67,7 +67,7 @@ utils.factory = function factory (app, flow) {
       throw new TypeError(msg)
     }
 
-    utils.normalize(this || app, value, options)
+    utils.normalize.call(this, app, value, options)
 
     if (typeof done === 'function') {
       utils.async[flow](value, app.iterator, utils.doneCallback(app, done))
@@ -111,14 +111,16 @@ utils.doneCallback = function doneCallback (app, done) {
  */
 utils.normalize = function normalize (app, value, opts) {
   app.define('_input', value)
-  app.options = utils.extend(app.options, opts)
+  app.options = opts ? utils.extend(app.options, opts) : app.options
 
+  var context = app.options.context || this
   var iterator = app.options.iterator || app.iterator
   iterator = typeof iterator !== 'function' ? utils.createIterator : iterator
-  iterator = iterator.call(app, app, app.options)
+  iterator = iterator.call(context, app, app.options)
 
-  app.define('iterator', iterator.bind(app))
-  app.options.before.call(app, value)
+  app.define('iterator', iterator.bind(context))
+  app.options.before.call(context, value)
+  app.options.context = context
   return app
 }
 
@@ -162,16 +164,17 @@ utils.normalize = function normalize (app, value, opts) {
  * @private
  */
 utils.createIterator = function createIterator (app, opts) {
+  // var self = this // this !== app
   var settle = typeof app.settle === 'boolean' ? app.settle : false
   settle = typeof opts.settle === 'boolean' ? !!opts.settle : !!settle
 
   return function defaultIterator (fn, next) {
-    app = this || app
+    var ctx = this // this !== app, this === self
     var res = null
-    opts.beforeEach.apply(app, arguments)
+    opts.beforeEach.apply(ctx, arguments)
 
     function done (err, res) {
-      opts.afterEach.apply(app, arguments)
+      opts.afterEach.apply(ctx, arguments)
       if (err instanceof Error) {
         err.fn = fn
         return settle ? next(null, err) : next(err)
@@ -180,7 +183,7 @@ utils.createIterator = function createIterator (app, opts) {
     }
 
     try {
-      res = fn.call(app, done)
+      res = fn.call(ctx, done)
     } catch (err) {
       res = err
     }
