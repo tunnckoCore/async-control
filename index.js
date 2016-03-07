@@ -26,13 +26,7 @@ function AsyncControl (options) {
     return new AsyncControl(options)
   }
   AppBase.call(this)
-  this.options = utils.extend({
-    settle: false,
-    before: noop,
-    beforeEach: noop,
-    after: noop,
-    afterEach: noop
-  }, this.options, options)
+  this.initDefaults(options)
   this.initAsyncControl()
 }
 
@@ -48,9 +42,26 @@ function AsyncControl (options) {
 AppBase.extend(AsyncControl)
 
 /**
- * > Used to normalize default options and
- * to compose and define three more non-enumerable
- * methods to the instance - compose, series and parallel.
+ * > Normalize default options.
+ *
+ * @param  {Object=} `options`
+ * @return {AsyncControl}
+ * @private
+ */
+AppBase.define(AsyncControl.prototype, 'initDefaults', function initDefaults (options) {
+  this.options = utils.extend({
+    settle: false,
+    before: noop,
+    beforeEach: noop,
+    after: noop,
+    afterEach: noop
+  }, this.options, options)
+  return this
+})
+
+/**
+ * > Used to add a few methods to the instance
+ * - compose (non-enumerable), series and parallel.
  *
  * @name   initAsyncControl
  * @return {AsyncControl}
@@ -88,7 +99,7 @@ AppBase.define(AsyncControl.prototype, 'initAsyncControl', function initAsyncCon
    * @return {Function} Or `undefined` if `done` is passed.
    * @api public
    */
-  this.define('series', this.compose('series'))
+  AsyncControl.prototype.series = this.compose('series')
 
   /**
    * > Iterate over `value` in parallel flow.
@@ -137,7 +148,7 @@ AppBase.define(AsyncControl.prototype, 'initAsyncControl', function initAsyncCon
    * @return {Function} Or `undefined` if `done` is passed.
    * @api public
    */
-  this.define('parallel', this.compose('parallel'))
+  AsyncControl.prototype.parallel = this.compose('parallel')
 
   return this
 })
