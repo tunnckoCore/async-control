@@ -84,7 +84,13 @@ utils.factory = function factory (app, flow) {
  */
 utils.doneCallback = function doneCallback (app, done) {
   return function callback () {
-    app.options.after && app.options.after.apply(app, arguments)
+    if (typeof app.options.after === 'function') {
+      app.options.after.apply(app.options.context, arguments)
+    }
+    if (typeof app.emit === 'function') {
+      var args = [].slice.call(arguments)
+      app.emit.apply(app.options.context, ['after'].concat(args))
+    }
     done.apply(app, arguments)
   }
 }
@@ -103,7 +109,15 @@ utils.normalize = function normalize (app, value, options) {
   app.define('_input', value)
   app.options = options ? utils.extend(app.options, options) : app.options
   app.options.context = app.options.context || this
-  app.options.before && app.options.before.call(app.options.context, app, value)
+
+  var opts = app.options
+
+  if (typeof opts.before === 'function') {
+    opts.before.call(opts.context, app, value)
+  }
+  if (typeof app.emit === 'function') {
+    app.emit.call(opts.context, 'before', app, value)
+  }
 
   var makeIterator = utils.base.makeIterator.bind(utils.base)
   var iterator = app.options.iterator || app.iterator
