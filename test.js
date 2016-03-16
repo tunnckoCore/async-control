@@ -15,23 +15,31 @@ var asyncControl = require('./index')
 asyncControl.series([
   function one (done) {
     this.one = 'one'
-    // console.log('first:', this.one)
+    console.log('first:', this.one)
     // throw new Error('foo')
     fs.readFile('package.json', done)
   },
-  function two () {
-    // console.log(this.one)
+  function two (a, b, c) {
     this.two = 'two'
+    console.log('second:', this.two)
+    console.log('args:', a, b, c) // => 1 2 3
     // throw new Error('foo')
     return fs.readFileSync('not exist', 'utf8')
   },
-  function three (done) {
-    // console.log(this.two)
+  function three (a, b, c, done) {
     this.three = 'three'
-    // console.log(this.three)
+    console.log('third:', this.three)
+    console.log('ctx:', this)
+    console.log('args:', a, b, c) // => 1 2 3
     fs.readFile('package.json', done)
   }
-], /* {settle: true}, */ function (err, res) {
+], {
+  settle: true,
+  params: [1, 2, 3],
+  context: {
+    foo: 123
+  }
+}, function (err, res) {
   console.log('err:', err) // => ENOENT Error
   console.log('res:', res) // => [Buffer, undefined]
   console.log('done')
