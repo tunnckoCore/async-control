@@ -75,23 +75,31 @@ utils.factory = function factory (app, flow) {
 }
 
 /**
- * > Final (done) callback. Also calls the `after` hook.
+ * > Validates incoming arguments.
  *
- * @param  {Object}   app
- * @param  {Function} done
- * @return {Function} callback
+ * @param  {Object|Array|Function} `value`
+ * @param  {Object=} `options`
+ * @param  {Function=} `done`
+ * @return {Object}
  * @private
  */
-utils.doneCallback = function doneCallback (app, done) {
-  return function callback () {
-    if (typeof app.options.after === 'function') {
-      app.options.after.apply(app.options.context, arguments)
-    }
-    if (typeof app.emit === 'function') {
-      var args = [].slice.call(arguments)
-      app.emit.apply(app.options.context, ['after'].concat(args))
-    }
-    done.apply(app, arguments)
+utils.validateArgs = function validateArgs (flow, value, options, done) {
+  if (typeof value === 'function') {
+    value = [value]
+  }
+  if (typeof options === 'function') {
+    done = options
+    options = null
+  }
+  if (typeof value !== 'object' && typeof value !== 'function') {
+    var msg = format('AsyncControl.%s `value` to be array, object or function.', flow)
+    throw new TypeError(msg)
+  }
+
+  return {
+    value: value,
+    options: options,
+    done: done
   }
 }
 
@@ -129,31 +137,23 @@ utils.normalize = function normalize (app, value, options) {
 }
 
 /**
- * > Validates incoming arguments.
+ * > Final (done) callback. Also calls the `after` hook.
  *
- * @param  {Object|Array|Function} `value`
- * @param  {Object=} `options`
- * @param  {Function=} `done`
- * @return {Object}
+ * @param  {Object}   app
+ * @param  {Function} done
+ * @return {Function} callback
  * @private
  */
-utils.validateArgs = function validateArgs (flow, value, options, done) {
-  if (typeof value === 'function') {
-    value = [value]
-  }
-  if (typeof options === 'function') {
-    done = options
-    options = null
-  }
-  if (typeof value !== 'object' && typeof value !== 'function') {
-    var msg = format('AsyncControl.%s `value` to be array, object or function.', flow)
-    throw new TypeError(msg)
-  }
-
-  return {
-    value: value,
-    options: options,
-    done: done
+utils.doneCallback = function doneCallback (app, done) {
+  return function callback () {
+    if (typeof app.options.after === 'function') {
+      app.options.after.apply(app.options.context, arguments)
+    }
+    if (typeof app.emit === 'function') {
+      var args = [].slice.call(arguments)
+      app.emit.apply(app.options.context, ['after'].concat(args))
+    }
+    done.apply(app, arguments)
   }
 }
 
