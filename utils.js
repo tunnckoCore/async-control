@@ -26,6 +26,7 @@ require = utils // eslint-disable-line no-undef, no-native-reassign
  */
 
 require('async')
+require('async-base-iterator', 'base')
 require('extend-shallow', 'extend')
 
 /**
@@ -55,22 +56,11 @@ utils.factory = function factory (app, flow) {
    * @private
    */
   return function seriesOrParallel (value, options, done) {
-    if (typeof value === 'function') {
-      value = [value]
-    }
-    if (typeof options === 'function') {
-      done = options
-      options = null
-    }
-    if (typeof value !== 'object' && typeof value !== 'function') {
-      var msg = format('AsyncControl.%s `value` to be array, object or function.', flow)
-      throw new TypeError(msg)
-    }
+    var argz = utils.validateArgs(flow, value, options, done)
+    utils.normalize.call(this, app, argz.value, argz.options)
 
-    utils.normalize.call(this, app, value, options)
-
-    if (typeof done === 'function') {
-      utils.async[flow](value, app.iterator, utils.doneCallback(app, done))
+    if (typeof argz.done === 'function') {
+      utils.async[flow](argz.value, app.iterator, utils.doneCallback(app, argz.done))
       return
     }
 
@@ -79,7 +69,7 @@ utils.factory = function factory (app, flow) {
         var msg = format('AsyncControl.%s `done` to be function.', flow)
         throw new TypeError(msg)
       }
-      utils.async[flow](value, app.iterator, utils.doneCallback(app, cb))
+      utils.async[flow](argz.value, app.iterator, utils.doneCallback(app, cb))
     }
   }
 }
@@ -94,7 +84,7 @@ utils.factory = function factory (app, flow) {
  */
 utils.doneCallback = function doneCallback (app, done) {
   return function callback () {
-    app.options.after.apply(app, arguments)
+    app.options.after && app.options.after.apply(app, arguments)
     done.apply(app, arguments)
   }
 }
@@ -105,94 +95,51 @@ utils.doneCallback = function doneCallback (app, done) {
  *
  * @param  {Object} `app`
  * @param  {Object|Array|Function} `value`
- * @param  {Object} `opts`
+ * @param  {Object} `options`
  * @return {Object}
  * @private
  */
-utils.normalize = function normalize (app, value, opts) {
+utils.normalize = function normalize (app, value, options) {
   app.define('_input', value)
-  app.options = opts ? utils.extend(app.options, opts) : app.options
+  app.options = options ? utils.extend(app.options, options) : app.options
+  app.options.context = app.options.context || this
+  app.options.before && app.options.before.call(app.options.context, app, value)
 
-  var context = app.options.context || this
+  var makeIterator = utils.base.makeIterator.bind(utils.base)
   var iterator = app.options.iterator || app.iterator
-  iterator = typeof iterator !== 'function' ? utils.createIterator : iterator
-  iterator = iterator.call(context, app, app.options)
+  iterator = typeof iterator !== 'function' ? makeIterator : iterator
+  iterator = iterator(app.options)
+  app.define('iterator', iterator)
 
-  app.define('iterator', iterator.bind(context))
-  app.options.before.call(context, value)
-  app.options.context = context
   return app
 }
 
 /**
- * > Returns default iterator which will be used in `async.map`
- * and for `async.mapSeries`. Below example shows how to create
- * your own iterator using `asyncControl.define` method.
- * This also can be done with passing function to `options.iterator`.
+ * > Validates incoming arguments.
  *
- * @example
- *
- * ```js
- * const util = require('util')
- * const asyncControl = require('async-control')
- *
- * asyncControl.define('iterator', function customIterator (app, options) {
- *   // `this` can be passed `options.context` or `app`
- *   // `this` not always equal to `app`
- *   var self = this
- *   return iterator (fn, next) {
- *     // `this` not always equal to `app`
- *     // `this` is always equal to `self`
- *     console.log(this, self, app)
- *     console.log(util.inspect(fn))
- *     next()
- *   }
- * })
- * asyncControl.series([
- *   function first (next) { next(null, 1) },
- *   function second (next) { next(null, 2) },
- *   function third (next) { next(null, 3) }
- * ], function (err, res) {
- *   // => [Function: first]
- *   // => [Function: second]
- *   // => [Function: third]
- *
- *   console.log(err, res)
- *   // => null, [1, 2, 3]
- * })
- * ```
- *
- * @param  {Object} app The instance of AsyncControl.
- * @param  {Object} opts The app options, same as `app.options`.
- * @return {Function} Iterator function passed directly to [async][async].
+ * @param  {Object|Array|Function} `value`
+ * @param  {Object=} `options`
+ * @param  {Function=} `done`
+ * @return {Object}
  * @private
  */
-utils.createIterator = function createIterator (app, opts) {
-  // var self = this // this !== app
-  var settle = typeof app.settle === 'boolean' ? app.settle : false
-  settle = typeof opts.settle === 'boolean' ? !!opts.settle : !!settle
+utils.validateArgs = function validateArgs (flow, value, options, done) {
+  if (typeof value === 'function') {
+    value = [value]
+  }
+  if (typeof options === 'function') {
+    done = options
+    options = null
+  }
+  if (typeof value !== 'object' && typeof value !== 'function') {
+    var msg = format('AsyncControl.%s `value` to be array, object or function.', flow)
+    throw new TypeError(msg)
+  }
 
-  return function defaultIterator (fn, next) {
-    var ctx = this // this !== app, this === self
-    var res = null
-    opts.beforeEach.apply(ctx, arguments)
-
-    function done (err, res) {
-      opts.afterEach.apply(ctx, arguments)
-      if (err instanceof Error) {
-        err.fn = fn
-        return settle ? next(null, err) : next(err)
-      }
-      next(null, res)
-    }
-
-    try {
-      res = fn.call(ctx, done)
-    } catch (err) {
-      res = err
-    }
-
-    return res instanceof Error ? done(res) : (res ? done(null, res) : res)
+  return {
+    value: value,
+    options: options,
+    done: done
   }
 }
 

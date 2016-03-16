@@ -52,9 +52,7 @@ AppBase.define(AsyncControl.prototype, 'initDefaults', function initDefaults (op
   this.options = utils.extend({
     settle: false,
     before: noop,
-    beforeEach: noop,
-    after: noop,
-    afterEach: noop
+    after: noop
   }, this.options, options)
   return this
 })
