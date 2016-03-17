@@ -13,7 +13,7 @@ var fs = require('fs')
 var asyncControl = require('./index')
 
 asyncControl.series([
-  function one (done) {
+  function one (a, b, c, done) {
     this.one = 'one'
     console.log('first:', this.one)
     // throw new Error('foo')
