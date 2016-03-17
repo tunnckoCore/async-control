@@ -57,10 +57,10 @@ utils.factory = function factory (app, flow) {
    */
   return function seriesOrParallel (value, options, done) {
     var argz = utils.validateArgs(flow, value, options, done)
-    utils.normalize.call(this, app, argz.value, argz.options)
+    var iterator = utils.normalize.call(this, app, argz.value, argz.options)
 
     if (typeof argz.done === 'function') {
-      utils.async[flow](argz.value, app.iterator, utils.doneCallback(app, argz.done))
+      utils.async[flow](argz.value, iterator, utils.doneCallback(app, argz.done))
       return
     }
 
@@ -69,7 +69,7 @@ utils.factory = function factory (app, flow) {
         var msg = format('AsyncControl.%s `done` to be function.', flow)
         throw new TypeError(msg)
       }
-      utils.async[flow](argz.value, app.iterator, utils.doneCallback(app, cb))
+      utils.async[flow](argz.value, iterator, utils.doneCallback(app, cb))
     }
   }
 }
@@ -130,10 +130,7 @@ utils.normalize = function normalize (app, value, options) {
   var makeIterator = utils.base.makeIterator.bind(utils.base)
   var iterator = app.options.iterator || app.iterator
   iterator = typeof iterator !== 'function' ? makeIterator : iterator
-  iterator = iterator(app.options)
-  app.define('iterator', iterator)
-
-  return app
+  return iterator(app.options)
 }
 
 /**
