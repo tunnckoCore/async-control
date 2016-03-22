@@ -26,7 +26,6 @@ require = utils // eslint-disable-line no-undef, no-native-reassign
  */
 
 require('async')
-require('async-base-iterator', 'base')
 require('extend-shallow', 'extend')
 
 /**
@@ -127,10 +126,10 @@ utils.normalize = function normalize (app, value, options) {
     app.emit.call(opts.context, 'before', app, value)
   }
 
-  var makeIterator = utils.base.makeIterator.bind(utils.base)
-  var iterator = app.options.iterator || app.iterator
-  iterator = typeof iterator !== 'function' ? makeIterator : iterator
-  return iterator(app.options)
+  if (typeof app.options.iterator === 'function') {
+    return app.wrapIterator(app.options.iterator, app.options)
+  }
+  return app.makeIterator(app.options)
 }
 
 /**

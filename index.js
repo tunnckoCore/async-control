@@ -7,9 +7,8 @@
 
 'use strict'
 
-var util = require('util')
 var utils = require('./utils')
-var AppBase = require('app-base').AppBase
+var AppBase = require('async-base-iterator').AsyncBaseIterator
 var noop = function noop () {}
 
 /**
@@ -25,37 +24,12 @@ function AsyncControl (options) {
   if (!(this instanceof AsyncControl)) {
     return new AsyncControl(options)
   }
-  AppBase.call(this)
-  this.initDefaults(options)
+  AppBase.call(this, options)
+  this.defaultOptions({before: noop, after: noop})
   this.initAsyncControl()
 }
 
-/**
- * > Extends `AsyncControl` with `AppBase` static
- * and prototype methods.
- *
- * - added prototype methods: define, delegate, isObject.
- * - added static methods: define, delegate, inherit, extend.
- *
- * @private
- */
 AppBase.extend(AsyncControl)
-
-/**
- * > Normalize default options.
- *
- * @param  {Object=} `options`
- * @return {AsyncControl}
- * @private
- */
-AppBase.define(AsyncControl.prototype, 'initDefaults', function initDefaults (options) {
-  this.options = utils.extend({
-    settle: false,
-    before: noop,
-    after: noop
-  }, this.options, options)
-  return this
-})
 
 /**
  * > Used to add a few methods to the instance
@@ -97,6 +71,7 @@ AppBase.define(AsyncControl.prototype, 'initAsyncControl', function initAsyncCon
    * @return {Function} Or `undefined` if `done` is passed.
    * @api public
    */
+
   AsyncControl.prototype.series = this.compose('series')
 
   /**
@@ -146,6 +121,7 @@ AppBase.define(AsyncControl.prototype, 'initAsyncControl', function initAsyncCon
    * @return {Function} Or `undefined` if `done` is passed.
    * @api public
    */
+
   AsyncControl.prototype.parallel = this.compose('parallel')
 
   return this
@@ -183,6 +159,7 @@ AppBase.define(AsyncControl.prototype, 'initAsyncControl', function initAsyncCon
  * @return {Function} Composed `series` or `parallel` method, depends on `flow`.
  * @api public
  */
+
 AppBase.define(AsyncControl.prototype, 'compose', function compose (flow, options) {
   if (typeof flow !== 'string') {
     throw new TypeError('asyncControl.compose expect a string')
@@ -192,6 +169,7 @@ AppBase.define(AsyncControl.prototype, 'compose', function compose (flow, option
   flow = flow === 'parallel' ? 'map' : flow
 
   if (['mapSeries', 'map'].indexOf(flow) === -1) {
+    var util = require('util')
     var msg = util.format('AsyncControl.compose `flow` to be string - parallel or series')
     throw new TypeError(msg)
   }
@@ -204,7 +182,7 @@ AppBase.define(AsyncControl.prototype, 'compose', function compose (flow, option
  * > Expose `AsyncControl` instance.
  *
  * @type {AsyncControl}
- * @public
+ * @private
  */
 module.exports = new AsyncControl()
 
@@ -212,6 +190,6 @@ module.exports = new AsyncControl()
  * > Expose `AsyncControl` constructor.
  *
  * @type {Function}
- * @public
+ * @private
  */
 module.exports.AsyncControl = AsyncControl
