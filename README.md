@@ -47,7 +47,7 @@ asyncControl.series([
 })
 ```
 
-### [AsyncControl](index.js#L25)
+### [AsyncControl](index.js#L24)
 
 > Initialize `AsyncControl` with `options` to
 control enabling/disabling `options.settle`, passing
@@ -55,33 +55,9 @@ custom `iterator` and pass different hooks - before, after, etc.
 
 **Params**
 
-* `[options]` **{Object}**: optional options for more control 
-  + `settle` **{Boolean}**: pass `true` to force continue iterating after first error occurred.
-  + `iterator` **{Function}**: custom iterator function
-  + `before` **{Function}**: before all hook.
-  + `beforeEach` **{Function}**: hook, called before each item/function.
-  + `after` **{Function}**: after all hook.
-  + `afterEach` **{Function}**: hook, called after each item/function.
+* `options` **{Object=}**    
 
-**Example**
-
-```js
-const util = require('util')
-const AsyncControl = require('async-control').AsyncControl
-
-function MyApp (options) {
-  if (!(this instanceof MyApp)) {
-    return new MyApp(options)
-  }
-  AsyncControl.call(this, options)
-}
-
-util.inherits(MyApp, AsyncControl)
-
-const app = new MyApp({settle: true})
-```
-
-### [.series](index.js#L92)
+### [.series](index.js#L75)
 > Iterate over `value` in series flow. The `async.mapSeries` method is used.
 
 **Params**
@@ -110,7 +86,7 @@ asyncControl.series([
 ], console.log) //=> ENOENT Error, ['foo', undefined]
 ```
 
-### [.parallel](index.js#L141)
+### [.parallel](index.js#L125)
 > Iterate over `value` in parallel flow. The `async.map` method is used.
 
 **Params**
@@ -155,7 +131,7 @@ asyncControl.parallel([
 })
 ```
 
-### [.compose](index.js#L178)
+### [.compose](index.js#L163)
 > Compose `series` or `parallel` method. Can be used to create `settleSeries` or `settleParallel` methods for example.
 
 **Params**
@@ -201,13 +177,9 @@ const util = require('util')
 const asyncControl = require('async-control')
 
 asyncControl.define('iterator', function customIterator (app, options) {
-  // `this` can be passed `options.context` or `app`
-  // `this` not always equal to `app`
-  var self = this
+  // this === app
   return iterator (fn, next) {
-    // `this` not always equal to `app`
-    // `this` is always equal to `self`
-    console.log(this, self, app)
+    // this === app
     console.log(util.inspect(fn))
     next()
   }
@@ -234,8 +206,8 @@ But before doing anything, please read the [CONTRIBUTING.md](./CONTRIBUTING.md) 
 
 [![tunnckoCore.tk][author-www-img]][author-www-url] [![keybase tunnckoCore][keybase-img]][keybase-url] [![tunnckoCore npm][author-npm-img]][author-npm-url] [![tunnckoCore twitter][author-twitter-img]][author-twitter-url] [![tunnckoCore github][author-github-img]][author-github-url]
 
-[app-base]: https://github.com/tunnckocore/app-base
 [async]: https://github.com/caolan/async
+[async-base-iterator]: https://github.com/tunnckocore/async-base-iterator
 [extend-shallow]: https://github.com/jonschlinkert/extend-shallow
 [lazy-cache]: https://github.com/jonschlinkert/lazy-cache
 
