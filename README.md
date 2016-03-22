@@ -57,7 +57,7 @@ custom `iterator` and pass different hooks - before, after, etc.
 
 * `options` **{Object=}**    
 
-### [.series](index.js#L75)
+### [.series](index.js#L76)
 > Iterate over `value` in series flow. The `async.mapSeries` method is used.
 
 **Params**
@@ -86,7 +86,7 @@ asyncControl.series([
 ], console.log) //=> ENOENT Error, ['foo', undefined]
 ```
 
-### [.parallel](index.js#L125)
+### [.parallel](index.js#L126)
 > Iterate over `value` in parallel flow. The `async.map` method is used.
 
 **Params**
@@ -131,7 +131,7 @@ asyncControl.parallel([
 })
 ```
 
-### [.compose](index.js#L163)
+### [.compose](index.js#L164)
 > Compose `series` or `parallel` method. Can be used to create `settleSeries` or `settleParallel` methods for example.
 
 **Params**

@@ -20,6 +20,7 @@ var noop = function noop () {}
  * @param {Object=} `options`
  * @api public
  */
+
 function AsyncControl (options) {
   if (!(this instanceof AsyncControl)) {
     return new AsyncControl(options)
