@@ -19,10 +19,10 @@ asyncControl
   .on('beforeEach', function (fn, next) {
     console.log('before each:', fn.name)
   })
-  .on('error', function (err, res) {
-    console.log('on error:', err)
+  .on('error', function (er, res) {
+    console.log('on error:', er)
   })
-  .on('afterEach', function (err, res, fn, next) {
+  .on('afterEach', function (er, res, fn, next) {
     console.log('after each:', fn.name)
   })
   .on('after', function () {
