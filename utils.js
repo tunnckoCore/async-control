@@ -117,15 +117,14 @@ utils.normalize = function normalize (app, value, options) {
   app.options = options ? utils.extend(app.options, options) : app.options
   app.options.context = app.options.context || this
 
-  var opts = app.options
-
-  if (typeof opts.before === 'function') {
-    opts.before.call(opts.context, app, value)
+  if (typeof app.options.before === 'function') {
+    app.on('before', app.options.before)
   }
-  if (typeof app.emit === 'function') {
-    app.emit.call(opts.context, 'before', app, value)
+  if (typeof app.options.after === 'function') {
+    app.on('after', app.options.after)
   }
 
+  app.emit('before', app, value)
   if (typeof app.options.iterator === 'function') {
     return app.wrapIterator(app.options.iterator, app.options)
   }
@@ -141,14 +140,8 @@ utils.normalize = function normalize (app, value, options) {
  * @private
  */
 utils.doneCallback = function doneCallback (app, done) {
-  return function callback () {
-    if (typeof app.options.after === 'function') {
-      app.options.after.apply(app.options.context, arguments)
-    }
-    if (typeof app.emit === 'function') {
-      var args = [].slice.call(arguments)
-      app.emit.apply(app.options.context, ['after'].concat(args))
-    }
+  return function callback (err, res) {
+    app.emit('after', err, res)
     done.apply(app, arguments)
   }
 }

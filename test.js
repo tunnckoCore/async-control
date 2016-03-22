@@ -13,11 +13,20 @@ var fs = require('fs')
 var asyncControl = require('./index')
 
 asyncControl
+  .on('before', function () {
+    console.log('before all')
+  })
   .on('beforeEach', function (fn, next) {
     console.log('before each:', fn.name)
   })
   .on('error', function (err, res) {
     console.log('on error:', err)
+  })
+  .on('afterEach', function (err, res, fn, next) {
+    console.log('after each:', fn.name)
+  })
+  .on('after', function () {
+    console.log('after all', this)
   })
   .series([
     function one (a, b, c, done) {
