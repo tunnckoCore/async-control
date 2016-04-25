@@ -1,5 +1,5 @@
 /*!
- * async-control <https://github.com/hybridables/async-control>
+ * async-control <https://github.com/tunnckoCore/async-control>
  *
  * Copyright (c) 2016 Charlike Mike Reagent <@tunnckoCore> (http://www.tunnckocore.tk)
  * Released under the MIT license.

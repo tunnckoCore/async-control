@@ -199,7 +199,7 @@ asyncControl.series([
 ```
 
 ## Contributing
-Pull requests and stars are always welcome. For bugs and feature requests, [please create an issue](https://github.com/hybridables/async-control/issues/new).  
+Pull requests and stars are always welcome. For bugs and feature requests, [please create an issue](https://github.com/tunnckoCore/async-control/issues/new).  
 But before doing anything, please read the [CONTRIBUTING.md](./CONTRIBUTING.md) guidelines.
 
 ## [Charlike Make Reagent](http://j.mp/1stW47C) [![new message to charlike][new-message-img]][new-message-url] [![freenode #charlike][freenode-img]][freenode-url]
@@ -207,27 +207,26 @@ But before doing anything, please read the [CONTRIBUTING.md](./CONTRIBUTING.md) 
 [![tunnckoCore.tk][author-www-img]][author-www-url] [![keybase tunnckoCore][keybase-img]][keybase-url] [![tunnckoCore npm][author-npm-img]][author-npm-url] [![tunnckoCore twitter][author-twitter-img]][author-twitter-url] [![tunnckoCore github][author-github-img]][author-github-url]
 
 [async]: https://github.com/caolan/async
-[async-base-iterator]: https://github.com/tunnckocore/async-base-iterator
 [extend-shallow]: https://github.com/jonschlinkert/extend-shallow
 [lazy-cache]: https://github.com/jonschlinkert/lazy-cache
 
 [npmjs-url]: https://www.npmjs.com/package/async-control
 [npmjs-img]: https://img.shields.io/npm/v/async-control.svg?label=async-control
 
-[license-url]: https://github.com/hybridables/async-control/blob/master/LICENSE
+[license-url]: https://github.com/tunnckoCore/async-control/blob/master/LICENSE
 [license-img]: https://img.shields.io/badge/license-MIT-blue.svg
 
-[codeclimate-url]: https://codeclimate.com/github/hybridables/async-control
-[codeclimate-img]: https://img.shields.io/codeclimate/github/hybridables/async-control.svg
+[codeclimate-url]: https://codeclimate.com/github/tunnckoCore/async-control
+[codeclimate-img]: https://img.shields.io/codeclimate/github/tunnckoCore/async-control.svg
 
-[travis-url]: https://travis-ci.org/hybridables/async-control
-[travis-img]: https://img.shields.io/travis/hybridables/async-control/master.svg
+[travis-url]: https://travis-ci.org/tunnckoCore/async-control
+[travis-img]: https://img.shields.io/travis/tunnckoCore/async-control/master.svg
 
-[coveralls-url]: https://coveralls.io/r/hybridables/async-control
-[coveralls-img]: https://img.shields.io/coveralls/hybridables/async-control.svg
+[coveralls-url]: https://coveralls.io/r/tunnckoCore/async-control
+[coveralls-img]: https://img.shields.io/coveralls/tunnckoCore/async-control.svg
 
-[david-url]: https://david-dm.org/hybridables/async-control
-[david-img]: https://img.shields.io/david/hybridables/async-control.svg
+[david-url]: https://david-dm.org/tunnckoCore/async-control
+[david-img]: https://img.shields.io/david/tunnckoCore/async-control.svg
 
 [standard-url]: https://github.com/feross/standard
 [standard-img]: https://img.shields.io/badge/code%20style-standard-brightgreen.svg
