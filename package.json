@@ -11,7 +11,7 @@
     "test": "standard && node test.js"
   },
   "dependencies": {
-    "async": "^1.5.2",
+    "async": "^2.0.1",
     "async-base-iterator": "^0.4.0",
     "extend-shallow": "^2.0.1",
     "lazy-cache": "^2.0.0"
