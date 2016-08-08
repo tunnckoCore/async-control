@@ -26,7 +26,9 @@ require = utils // eslint-disable-line no-undef, no-native-reassign
  */
 
 require('async')
+require('dezalgo')
 require('extend-shallow', 'extend')
+require('once')
 
 /**
  * Restore `require`
@@ -140,10 +142,10 @@ utils.normalize = function normalize (app, value, options) {
  * @private
  */
 utils.doneCallback = function doneCallback (app, done) {
-  return function callback (err, res) {
-    app.emit('after', err, res)
+  return utils.once(utils.dezalgo(function callback (err, res) {
+    app.emit('after', err, res, app)
     done.apply(app, arguments)
-  }
+  }))
 }
 
 /**
