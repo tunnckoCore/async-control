@@ -11,7 +11,7 @@
     "test": "standard && node test.js"
   },
   "dependencies": {
-    "async": "^1.5.2",
+    "async": "^2.1.0",
     "async-base-iterator": "^0.4.0",
     "dezalgo": "^1.0.3",
     "extend-shallow": "^2.0.1",
