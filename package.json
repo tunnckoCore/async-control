@@ -21,7 +21,7 @@
   "devDependencies": {
     "assertit": "^0.1.0",
     "letta": "^0.5.2",
-    "pre-commit": "*"
+    "pre-commit": "1.2.1"
   },
   "files": [
     "index.js",
